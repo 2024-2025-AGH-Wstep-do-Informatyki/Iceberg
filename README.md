@@ -21,3 +21,25 @@ Projekt keyloggera polega na stworzeniu oprogramowania, które umożliwia monito
 ## Technologie użyte w projekcie
 - **Język programowania**: Python
 - **Interfejs użytkownika**: Brak interfejsu (niewidoczna praca w tle) lub minimalistyczny panel do konfiguracji dla administratora.
+
+## Struktura projektu
+
+```plaintext
+keyboard_monitor/
+├── core/   
+|   ├── main.py           # Główne wejście programu
+|   └── config.txt        # Plik konfiguracyjny
+|
+├── utils/                # Moduły pomocnicze
+|   ├── logger.py         # Moduł rejetrowania klawiatury
+|   ├── hash.py           # Moduł szyfrujacy
+|   ├── add_path.py       # Moduł dodajacy program do ścieżki startowej
+|   ├── send_report.py    # Moduł wysyłania raportów
+|   └── hide_procces.py   # Moduł ukrywania procesu
+|
+├── logs/
+|   └── logs.txt
+|
+└── README.md         # Dokumentacja projektu
+
+
