@@ -1,0 +1,10 @@
+Piotr Straszak: 
+    - Stworzenie servera smtp
+    - Stowrzenie modułu do wysylania raportów
+    - Stworzenie modułu do ukrywania i kopiowania procesu 
+
+Hubert Czernicki: 
+    - Stworzenie modułu do szczytywania klawiszy od uzytkownika
+
+Mateusz Kurdziel:
+    - Stworzenie modulu szyfrujacego / odszyfrujacego podane mu dane
