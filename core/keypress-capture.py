@@ -1,20 +1,38 @@
 # print("Tutaj pojawi się wkrótce kod")
 from pynput import keyboard
-
+FILE_PATH="core/keypress_log.txt"
 
 class MyException(Exception): pass
 
 def on_press(key):
     try:
-        print('alphanumeric key {0} pressed'.format(
-            key.char))
+        #hasattr to funkcja, która sprawdza, czy dany obiekt ma określony atrybut (vk - virtual key code)
+        if hasattr(key, 'vk') and 96 <= key.vk <= 105: # Kody klawiszy 96-105 to Numpad (0-9)
+            numpad_key = key.vk - 96 # Obliczamy wartość klawisza Numpad
+            print(f'Numpad key {numpad_key} pressed')
+        else:
+            print('alphanumeric key {0} pressed'.format(key.char))
     except AttributeError:
         print('special key {0} pressed'.format(
             key))
+    try:
+        with open(FILE_PATH, "a") as f:
+            f.write(str(key) + "\n")
+    except FileNotFoundError:
+        with open(FILE_PATH, "w") as f:
+            f.write(str(key) + "\n")
 
 def on_release(key):
-    print('{0} released'.format(
-        key))
+    try:
+        if hasattr(key, 'vk') and 96 <= key.vk <= 105:
+            numpad_key = key.vk - 96
+            print(f'Numpad key {numpad_key} released').format(key.char)
+        else:
+            print('Key {0} released'.format(
+                key))
+    except AttributeError:
+        print('special key {0} released'.format(
+            key))
     if key == keyboard.Key.esc:
         # Stop listener
         raise MyException(key)
