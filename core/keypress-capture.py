@@ -1,8 +1,17 @@
 # print("Tutaj pojawi się wkrótce kod")
 from pynput import keyboard
-FILE_PATH="core/keypress_log.txt"
+import os
+FILE_PATH = os.path.join("core", "keypress_log.txt")
 
 class MyException(Exception): pass
+
+def log_key(key):
+    try:
+        with open(FILE_PATH, "a") as f:
+            f.write(str(key) + "\n")
+    except FileNotFoundError:
+        with open(FILE_PATH, "w") as f:
+            f.write(str(key) + "\n")
 
 def on_press(key):
     try:
@@ -15,12 +24,7 @@ def on_press(key):
     except AttributeError:
         print('special key {0} pressed'.format(
             key))
-    try:
-        with open(FILE_PATH, "a") as f:
-            f.write(str(key) + "\n")
-    except FileNotFoundError:
-        with open(FILE_PATH, "w") as f:
-            f.write(str(key) + "\n")
+    log_key(key)
 
 def on_release(key):
     try:
