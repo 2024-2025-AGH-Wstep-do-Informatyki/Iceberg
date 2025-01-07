@@ -51,6 +51,10 @@ class MyException(Exception): pass
 #Nie używamy @dataclass, bo korzystamy z niego tylko do przechowywania danych, natomiast nasza klasa działa
 #troche jak robot, keyboardeventhandler jest mózgiem całym przechwytywania klawiszy
 class KeyboardEventHandler:
+    """
+        Główna klasa odpowiedzialna za przechwytywanie i przetwarzanie zdarzeń klawiatury.
+        Obsługuje kategoryzację klawiszy, kombinacje klawiszy i modyfikatory.
+    """
     def __init__(self):
         self.modifiers_active = set() #set() jest jak lista, ale każda rzecz może być tylko raz (nie zawiera duplikatów)
                                     # Łatwo sprawdzić co jest w środku, łatwo dodawać i usuwać rzeczy
@@ -59,6 +63,9 @@ class KeyboardEventHandler:
 
     #funkcje zaczynające się od _ to funkcje wewnętrzne, których nie powinno wywoływać się w zewnętrznym kodzie.
     def _categorize_key(self, key) -> KeyCategory: #metoda zwraca wartość typu KeyCategory
+        """
+            Kategoryzuje klawisz na podstawie jego właściwości
+        """
         # hasattr to funkcja, która sprawdza, czy dany obiekt ('key') ma określony atrybut (vk - virtual key code)
         # np. hasattr(key, 'vk') sprawdza czy klawisz ma kod wirtualny
 
@@ -127,70 +134,77 @@ class KeyboardEventHandler:
                 self.modifiers_active.discard(key.name)
 
     def handle_press(self, key) -> KeyEvent:
-        self._handle_modifier(key, True)
+        # Aktualizacja stanu modyfikatorów przed utworzeniem zdarzenia (np.ctrl, shift etc.)
+        # aby zapewnić spójność stanu dla nowego KeyEvent
+        self._handle_modifier(key, True) # True oznacza naciśnięcie
 
+        # Określamy kategorię klawisza (NUMPAD, FUNCTION, itp.)
+        category = self._categorize_key(key)
+
+        # Zamieniamy obiekt klawisza na czytelny format tekstowy
+        formatted_key = self._format_key(key)
+
+        # Tworzymy nowy obiekt KeyEvent zawierający wszystkie informacje o zdarzeniu
+        event = KeyEvent(
+            key=formatted_key,  # sformatowana nazwa klawisza
+            category=category,  # kategoria klawisza
+            timestamp=datetime.now(),  # dokładny czas naciśnięcia
+            event_type='press',  # typ zdarzenia (naciśnięcie)
+            is_modifier_active=bool(self.modifiers_active),  # czy są aktywne modyfikatory
+            raw_key=key  # oryginalny obiekt klawisza
+        )
+
+        # Jeśli są aktywne jakieś modyfikatory (np. Ctrl, Shift)
+        if self.modifiers_active:
+            # Tworzymy kombinację klawiszy (np. "ctrl+shift+a")
+            # sorted() zapewnia stałą kolejność modyfikatorów
+            combo = '+'.join(sorted(self.modifiers_active) + [formatted_key]) #[formatted_key] - tworzymy listę z jednym elementem
+            #Bez kwadratowego nawiasu Python próbowałby dodać pojedynczy znak do zbioru
+            
+            # Dodajemy kombinację do listy
+            self.key_combinations.append(combo)
+
+        #Zapisujemy ostatnie zdarzenie
+        self.last_key = event
+
+        #Zwracamy utworzony obiekt zdarzenia
+        return event
+
+    def handle_release(self, key) -> KeyEvent:
+        # Aktualizujemy stan modyfikatorów
+        # False oznacza puszczenie klawisza
+        self._handle_modifier(key, False)
+
+
+        # Podobnie jak w handle_press, określamy kategorię
         category = self._categorize_key(key)
         formatted_key = self._format_key(key)
 
+        # Tworzymy obiekt zdarzenia dla puszczenia klawisza
         event = KeyEvent(
-            key=formatted_key,
-            category=category,
-            timestamp=datetime.now(),
-            event_type="press",
-            is_modifier_active=bool(self.modifiers_active),
-            raw_key=key
+            key=formatted_key,  # sformatowana nazwa klawisza
+            category=category,  # kategoria klawisza
+            timestamp=datetime.now(),  # dokładny czas naciśnięcia
+            event_type='release',  # typ zdarzenia (puszczenie)
+            is_modifier_active=bool(self.modifiers_active),  # czy są aktywne modyfikatory
+            raw_key=key  # oryginalny obiekt klawisza
         )
 
-# def log_key(key):
-#     try:
-#         with open(file_path, "a") as f:
-#             f.write(str(key) + "\n")
-#     except FileNotFoundError:
-#         with open(file_path, "w") as f:
-#             f.write(str(key) + "\n")
-#
-# def on_press(key):
-#     try:
-#         #hasattr to funkcja, która sprawdza, czy dany obiekt ma określony atrybut (vk - virtual key code)
-#         if hasattr(key, 'vk') and 96 <= key.vk <= 105: # Kody klawiszy 96-105 to Numpad (0-9)
-#             numpad_key = key.vk - 96 # Obliczamy wartość klawisza Numpad
-#             print(f'Numpad key {numpad_key} pressed')
-#
-#         elif hasattr(key, 'char'):
-#             print(f'Key {key.char} pressed')
-#         elif hasattr(key, 'name') and key.name.startswith('f'):
-#              # Wykrywa klawisze F1-F12
-#             print(f'Function key {key.name} pressed')
-#         else:
-#             print(f'Special key {key.char} pressed')
-#     except AttributeError:
-#         print(f'special key {key} pressed')
-#     log_key(key)
-#
-# def on_release(key):
-#     try:
-#         if hasattr(key, 'vk') and 96 <= key.vk <= 105: # kody 96 - 105 to klawiatura numeryczna (numpad) 0-9
-#             numpad_key = key.vk - 96
-#             print(f'Numpad key {numpad_key} released')
-#         else:
-#             print('Key {0} released'.format(
-#                 key))
-#     except AttributeError:
-#         print('special key {0} released'.format(
-#             key))
-#     if key == keyboard.Key.esc:
-#         # Stop listener
-#         raise MyException(key)
-#
-# def on_activate_h():
-#     print('<ctrl>+<alt>+h pressed')
-#
-# def on_activate_i():
-#     print('<ctrl>+<alt>+i pressed')
-#
-# def for_canonical(f):
-#     return lambda k: f(listener.canonical(k))
-#
+        #Zapisujemy ostatnie zdarzenie
+        self.last_key = event
+        return event
+#TODO: Zapis danych do pliku
+#TODO: Testy Jednostkowe
+#TODO: Dokumentacja użytkownika
+def log_key(key):
+    try:
+        with open(file_path, "a") as f:
+            f.write(str(key) + "\n")
+    except FileNotFoundError:
+        with open(file_path, "w") as f:
+            f.write(str(key) + "\n")
+
+
 # #Uruchom nasłuchiwanie skrótów w osobnym wątku
 # hotkeys = keyboard.GlobalHotKeys({
 #     '<ctrl>+<alt>+h': on_activate_h,
